@@ -8,7 +8,7 @@
 //!генератор графов
 error_t generate_dot_dump(list_s* list, const char* filename, const char* reason)
 {
-    char dot_filename[256] = {};
+    char dot_filename[200] = {};
     snprintf(dot_filename, sizeof(dot_filename), "dot/%s.dot", filename);
     
     FILE* dot_file = fopen(dot_filename, "w");
@@ -20,10 +20,12 @@ error_t generate_dot_dump(list_s* list, const char* filename, const char* reason
     
     fprintf(dot_file, "digraph List {\n");
     fprintf(dot_file, "\trankdir=LR;\n");
-    fprintf(dot_file, "\tnodesep=1;\n");
-    fprintf(dot_file, "\tranksep=0.4;\n");
+    fprintf(dot_file, "\tnodesep=0.8;\n");
+    fprintf(dot_file, "\tranksep=1;\n");
     fprintf(dot_file, "\tnode [shape=record, style=filled];\n");
-    fprintf(dot_file, "\tsplines=ortho;\n");
+    //fprintf(dot_file, "\tsplines=ortho;\n");
+    fprintf(dot_file, "\tedge [sep=10];\n");
+    fprintf(dot_file, "\tfontsize = 24;\n");
     fprintf(dot_file, "\tlabel=\"%s\";\n", reason);
     fprintf(dot_file, "\tlabelloc=t;\n\n");
     
@@ -39,8 +41,10 @@ error_t generate_dot_dump(list_s* list, const char* filename, const char* reason
 
     for (size_t i = list->next[get_head(list)]; i != get_tail(list); i = list->next[i])
     {
+        if ( list->next[i] > list->size) break;
+
         if (i != 0)
-        fprintf(dot_file, "node%zu [fillcolor=\"lightblue\", color=\"darkblue\", style=\"filled\"];", i);
+        fprintf(dot_file, "\tnode%zu [fillcolor=\"lightblue\", color=\"darkblue\", style=\"filled\"];\n", i);
     }
 
     fprintf(dot_file, "\n");
@@ -52,32 +56,69 @@ error_t generate_dot_dump(list_s* list, const char* filename, const char* reason
 
     fprintf(dot_file, "\n");
 
-    for (size_t i = get_head(list); i != get_tail(list); i = list->next[i])
-    {
-        fprintf(dot_file, "\tnode%zu->node%zu [color = blue, constraint=false];\n", i, list->next[i]);
+    for( size_t i = 1; i < list->capacity + 1; i++)
+    {   
+        if (list->next[i] > (list->capacity + 1) && list->prev[i] != PZN)
+        {
+            fprintf(dot_file, "\tERROR_NEXT%zu [shape=octagon, color=\"firebrick2\", style=\"filled\"];\n",list->next[i]);
+            fprintf(dot_file, "\tnode%zu->ERROR_NEXT%zu [color = deeppink, constraint=false];\n", i, list->next[i]);
+        }
+
+        else
+        {
+            if (list->prev[i] != PZN && list->next[i] != 0)
+            fprintf(dot_file, "\tnode%zu->node%zu [color = blue, constraint=false];\n", i, list->next[i]);
+        }
     }
 
     fprintf(dot_file, "\n");
 
-    for (size_t i = get_tail(list); i != get_head(list); i = list->prev[i])
+    for( size_t i = 1; i < list->capacity + 1; i++)
     {
-        fprintf(dot_file, "\tnode%zu->node%zu [color = red, constraint=false];\n", i, list->prev[i]);
+        if (list->prev[i] != 0 && list->prev[i] != PZN)
+        {   
+            if (list->prev[i] > list->capacity + 1)
+            {
+                fprintf(dot_file, "\tERROR_PREV%zu [shape=octagon, color=\"firebrick2\", style=\"filled\"];",list->prev[i]);
+                fprintf(dot_file, "\tnode%zu->ERROR_PREV%zu [color = deeppink, constraint=false];\n", i, list->prev[i]);
+            }
+
+            else
+            {
+                if (list->prev[i] != PZN)
+                fprintf(dot_file, "\tnode%zu->node%zu [color = red, constraint=false];\n", i, list->prev[i]);
+            }
+        }
+    }
+
+    fprintf(dot_file, "\n");
+
+    for(size_t i = list->free_i; list->next[i] != 0; i = list->next[i])
+    {
+        fprintf(dot_file, "\tnode%zu->node%zu [color = green, constraint=false];\n", i, list->next[i]);
     }
 
     fprintf(dot_file, "\n");
 
 
-    fprintf(dot_file, "\tHEAD [shape=plaintext];\n");
-    fprintf(dot_file, "\tTAIL [shape=plaintext];\n");
-    fprintf(dot_file, "\tFREE [shape=plaintext];\n");
+    fprintf(dot_file, "\tHEAD [shape=plaintext, fillcolor=\"royalblue\", color=\"darkblue\", style=\"filled\"];\n");
+    fprintf(dot_file, "\tTAIL [shape=plaintext, fillcolor=\"tomato\", color=\"darkred\", style=\"filled\"];\n");
+    fprintf(dot_file, "\tFREE [shape=plaintext, fillcolor=\"lawngreen\", color=\"darkgreen\", style=\"filled\"];\n");
+    fprintf(dot_file, "\tZERO [shape=plaintext, fillcolor=\"coral\", color=\"darkred\", style=\"filled\"];\n");
     
-    fprintf(dot_file, "\t{rank = same ;HEAD; node%zu [color=blue]};\n", get_head(list));
+    fprintf(dot_file, "\t{rank = same ; HEAD; node%zu [fillcolor=\"royalblue\", color=\"darkblue\", style=\"filled\"]};\n", get_head(list));
     
-    fprintf(dot_file, "\t{rank = same ;TAIL; node%zu [color=red]};\n", get_tail(list));
+    fprintf(dot_file, "\t{rank = same ; TAIL; node%zu [fillcolor=\"tomato\", color=\"darkred\", style=\"filled\"]};\n", get_tail(list));
 
-    fprintf(dot_file, "\t{rank = same ; FREE; node%zu [color=green]};\n", list->free_i);
-    
-    
+    fprintf(dot_file, "\t{rank = same ; FREE; node%zu [fillcolor=\"lawngreen\", color=\"darkgreen\", style=\"filled\"]};\n", list->free_i);
+
+    fprintf(dot_file, "\t{rank = same ; ZERO; node0   [fillcolor=\"coral\", color=\"darkred\", style=\"filled\"]};\n");
+
+    fprintf(dot_file, "\n");
+
+    fprintf(dot_file, "\n");
+
+
     fprintf(dot_file, "}\n");
     fclose(dot_file);
     
@@ -93,62 +134,81 @@ error_t generate_dot_dump(list_s* list, const char* filename, const char* reason
     
     printf("PNG was generated\n");
 
+    html_generator(filename, list);
+
     return SUCCSES;
+}
+
+error_t html_generator(const char* filename, list_s* list)
+{
+    fprintf(list->html_out, "<figure>\n");
+    fprintf(list->html_out, "\t<img src=\"png/%s.png\"/>\n", filename);
+    fprintf(list->html_out, "</figure>\n");
+
+    return 0;
 }
 
 //!распечатка списка
 void list_dump(list_s list, const char* reason)
 {   
-    printf("\n-------------------------------------------list-dump------------------------------------------------\n\n");
+    fprintf(list.html_out, "<pre>\n");
+    fprintf(list.html_out, "<font size=\"6\">\n");
 
-    printf("Reason - %s\n", reason);
+    fprintf(list.html_out, "\n-------------------------------------------list-dump------------------------------------------------\n\n");
 
-    printf("head = %zu\n", get_head(&list));
-    printf("tail = %zu\n", get_tail(&list));
-    printf("size = %zu\n", list.size);
-    printf("capacity = %zu\n", list.capacity);
-    printf("free_index = %zu\n", list.free_i);
-    printf("\n");
+    fprintf(list.html_out, "Reason - %s\n", reason);
 
-    printf("---------------------------------------------physical-location--------------------------------------\n\n");
+    fprintf(list.html_out, "head = %zu\n", get_head(&list));
+    fprintf(list.html_out, "tail = %zu\n", get_tail(&list));
+    fprintf(list.html_out, "size = %zu\n", list.size);
+    fprintf(list.html_out, "capacity = %zu\n", list.capacity);
+    fprintf(list.html_out, "free_index = %zu\n", list.free_i);
+    fprintf(list.html_out, "\n");
+
+    fprintf(list.html_out, "---------------------------------------------physical-location--------------------------------------\n\n");
 
     mass_output(list, list.data);
     mass_output(list, list.next);
     mass_output(list, list.prev);
     
-    printf("\n\n\n");
+    fprintf(list.html_out, "\n\n\n");
 
-    printf("----------------------------------------------logical-location----------------------------------------\n\n");
-
-    for (size_t i = 0; i < list.capacity; i++)
-    {
-        printf("%5zu  ", i);
-    }
-    
-    printf("\n");
-    
-    for (size_t i = 0; i < list.capacity; i++)
-    {
-        printf("-------");
-    }
-    
-    printf("\n");
-
-    for (size_t i = get_head(&list); i != get_tail(&list); i = list.next[i])
-    {
-        printf("|%5zu", list.data[i]);
-    }
-    
-    printf("|%5zu|\n", list.data[get_tail(&list)]);
+    fprintf(list.html_out, "----------------------------------------------logical-location----------------------------------------\n\n");
 
     for (size_t i = 0; i < list.capacity; i++)
     {
-        printf("-------");
+        fprintf(list.html_out, "%5zu  ", i);
+    }
+    
+    fprintf(list.html_out, "\n");
+    
+    for (size_t i = 0; i < list.capacity; i++)
+    {
+        fprintf(list.html_out, "-------");
+    }
+    
+    fprintf(list.html_out, "\n");
+
+    if ( !( list.error & BAD_ORDER ))
+    {
+        for (size_t i = get_head(&list); i != get_tail(&list); i = list.next[i])
+        {
+            fprintf(list.html_out, "|%5zu", list.data[i]);
+        }
+    }
+    
+    fprintf(list.html_out, "|%5zu|\n", list.data[get_tail(&list)]);
+
+    for (size_t i = 0; i < list.capacity; i++)
+    {
+        fprintf(list.html_out, "-------");
     }
 
-    printf("\n");
+    fprintf(list.html_out, "\n");
 
-    printf("\n--------------------------------------------------END------------------------------------------------\n");
+    fprintf(list.html_out, "\n--------------------------------------------------END------------------------------------------------\n");
+
+    fprintf(list.html_out, "</font>\n");
 
     static int dump_count = 0;
     char filename[40] = {};
@@ -156,8 +216,6 @@ void list_dump(list_s list, const char* reason)
     
     if (generate_dot_dump(&list, filename, reason) ) printf("PNG generate failed\n");
 
-    printf("press enter to continue\n");
-    getchar();
 }
 
 //!функция вывода массивов
@@ -165,32 +223,32 @@ void mass_output(list_s list, size_t* arr)
 {
     for (size_t i = 0; i < list.capacity + 2; i++)
     {
-        printf("%5zu  ", i);
+        fprintf(list.html_out, "%5zu  ", i);
     }
     
-    printf("\n");
+    fprintf(list.html_out, "\n");
     
     for (size_t i = 0; i < list.capacity + 2 ; i++)
     {
-        printf("-------");
+        fprintf(list.html_out, "-------");
     }
     
-    printf("\n");
+    fprintf(list.html_out, "\n");
     
     for (size_t i = 0; i < list.capacity + 2; i++)
     {
-        printf("|");
-        printf("%6zu", arr[i]);
+        fprintf(list.html_out, "|");
+        fprintf(list.html_out, "%6zu", arr[i]);
     }
     
-    printf("|\n");
+    fprintf(list.html_out, "|\n");
     
     for (size_t i = 0; i < list.capacity + 2; i++)
     {
-        printf("-------");
+        fprintf(list.html_out, "-------");
     }
 
-    printf("\n\n");
+    fprintf(list.html_out, "\n\n");
 }
 
 //!функция проверки
@@ -219,7 +277,13 @@ error_t checker(list_s* list)
 
     for (size_t i = get_head(list); i != 0; i = list->next[i])
     {
-        if ( list->prev[list->next[i]] != i)
+        if ( list->next[i] > list->capacity + 1)
+        {
+            list->error |= BAD_ORDER;
+            break;
+        }
+
+        else if ( list->prev[list->next[i]] != i)
         {   
             list->error |= BAD_ORDER;
             break;
@@ -238,12 +302,16 @@ error_t verify(list_s* list, const char* func, const char* file, int LINE)
     {
         printf("bad pointer!\n");
         printf("In function %s, %s:%d\n", func, file, LINE);
+        fprintf(list->html_out, "bad pointer!\n");
+        fprintf(list->html_out, "In function %s, %s:%d\n", func, file, LINE);
     }
 
     if (list->error & 2)
     {
         printf("bad capacity!\n");
         printf("In function %s, %s:%d\n", func, file, LINE);
+        fprintf(list->html_out, "bad capacity!\n");
+        fprintf(list->html_out, "In function %s, %s:%d\n", func, file, LINE);
         list_dump(*list, "BAD CAPACITY in");
     }
 
@@ -251,6 +319,8 @@ error_t verify(list_s* list, const char* func, const char* file, int LINE)
     {
         printf("bad size!\n");
         printf("In function %s, %s:%d\n", func, file, LINE);
+        fprintf(list->html_out, "bad size!\n");
+        fprintf(list->html_out, "In function %s, %s:%d\n", func, file, LINE);
         list_dump(*list, "BAD SIZE");
     }
 
@@ -258,6 +328,8 @@ error_t verify(list_s* list, const char* func, const char* file, int LINE)
     {
         printf("bad free!\n");
         printf("In function %s, %s:%d\n", func, file, LINE);
+        fprintf(list->html_out, "bad free!\n");
+        fprintf(list->html_out, "In function %s, %s:%d\n", func, file, LINE);
         list_dump(*list, "BAD FREE");
     }
 
@@ -265,6 +337,8 @@ error_t verify(list_s* list, const char* func, const char* file, int LINE)
     {
         printf("canary change!\n");
         printf("In function %s, %s:%d\n", func, file, LINE);
+        fprintf(list->html_out, "canary change!\n");
+        fprintf(list->html_out, "In function %s, %s:%d\n", func, file, LINE);
         list_dump(*list, "CANARY CHANGED");
         list_deleter(list);
     }
@@ -273,6 +347,8 @@ error_t verify(list_s* list, const char* func, const char* file, int LINE)
     {
         printf("bad head!\n");
         printf("In function %s, %s:%d\n", func, file, LINE);
+        fprintf(list->html_out, "bad head!\n");
+        fprintf(list->html_out, "In function %s, %s:%d\n", func, file, LINE);
         list_dump(*list, "BAD HEAD");
     }
 
@@ -280,6 +356,8 @@ error_t verify(list_s* list, const char* func, const char* file, int LINE)
     {
         printf("bad tail!\n");
         printf("In function %s, %s:%d\n", func, file, LINE);
+        fprintf(list->html_out, "bad tail!\n");
+        fprintf(list->html_out, "In function %s, %s:%d\n", func, file, LINE);
         list_dump(*list, "BAD TAIL");
     }
 
@@ -287,12 +365,15 @@ error_t verify(list_s* list, const char* func, const char* file, int LINE)
     {
         printf("bad order!\n");
         printf("In function %s, %s:%d\n", func, file, LINE);
+        fprintf(list->html_out, "bad order!\n");
+        fprintf(list->html_out, "In function %s, %s:%d\n", func, file, LINE);
         list_dump(*list, "BAD ORDER");
     }
 
     if (error != 0)
     {
         list_deleter(list);
+        
         return ERROR;
     }
 

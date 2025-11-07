@@ -13,66 +13,69 @@ int main(void)
     list_s list = {};
     
     list_creator(&list, 3);
-    list_dump(list, "123" );
+    list_dump(list, "list creator" );
 
     insert_begin(&list, 11);
-    list_dump(list, "123" );
+    list_dump(list, "insert_begin, val 11" );
 
     insert_end(&list, 22);
-    list_dump(list, "123" );
+    list_dump(list, "insert_end, val 22" );
 
     insert_begin(&list, 33);
-    list_dump(list, "123" );
+    list_dump(list, "insert_begin, val 33" );
 
     insert_end(&list, 55);
-    list_dump(list, "123" );
+    list_dump(list, "insert_end, val 55" );
 
     insert_after(&list, 4444, 3);
-    list_dump(list, "123" );
+    list_dump(list, "insert_after, index 3, val 4444" );
+
+    //  list.next[2] = 300; 
+    //  list.prev[1] = 200; 
 
     insert_before(&list, 5555, 2);
-    list_dump(list, "123" );
+    list_dump(list, "insert_before, index 2, val 5555" );
 
     delete_begin(&list);
-    list_dump(list, "123" );
+    list_dump(list, "delete_begin" );
 
     delete_begin(&list);
-    list_dump(list, "123" );
+    list_dump(list, "delete_begin" );
 
     delete_end(&list);
-    list_dump(list, "123" );
+    list_dump(list, "delete_end" );
 
     insert_begin(&list, 99);
-    list_dump(list, "123" );
+    list_dump(list, "insert_begin, val 99" );
 
     delete_after(&list, 3);
-    list_dump(list, "123" );
+    list_dump(list, "delete_after, index 3" );
 
     //-------------------------------------------
 
     insert_begin(&list, 11);
-    list_dump(list, "123");
+    list_dump(list, "insert_begin, val 11");
 
     insert_begin(&list, 22);
-    list_dump(list, "123" );
+    list_dump(list, "insert_begin, val 22" );
 
     insert_begin(&list, 33);
-    list_dump(list, "123" );
+    list_dump(list, "insert_begin, val 33" );
 
     insert_begin(&list, 44);
-    list_dump(list, "123" );
+    list_dump(list, "insert_begin, val 44" );
 
     delete_before(&list, 1);
-    list_dump(list, "123" );
+    list_dump(list, "delete_before, index 1" );
 
     delete_after(&list, 1);
-    list_dump(list, "123" );
+    list_dump(list, "delete_after, index 1" );
 
     insert_after(&list, 999, 0);
-    list_dump(list, "123");
+    list_dump(list, "insert_after, index 0, val 999");
 
     insert_before(&list, 999, 1);
-    list_dump(list, "123" );
+    list_dump(list, "insert_before, index 1, val 999" );
 
     list_deleter(&list);
 
@@ -92,13 +95,13 @@ error_t list_creator(list_s* list, size_t capacity)
     }
 
     list->data = (list_t*) calloc (capacity + 2, sizeof(list_t));
-    PTR_MEM_CHECK(list->data);
+    PTR_CLC_CHECK(list->data);
 
     list->next = (size_t*) calloc (capacity + 2, sizeof(size_t));
-    PTR_MEM_CHECK(list->next);
+    PTR_CLC_CHECK(list->next);
 
     list->prev = (size_t*) calloc (capacity + 2, sizeof(size_t));
-    PTR_MEM_CHECK(list->prev);
+    PTR_CLC_CHECK(list->prev);
 
     list->capacity = capacity;
     list->size = 0;
@@ -122,6 +125,9 @@ error_t list_creator(list_s* list, size_t capacity)
         list->prev[i] = PZN;
     }
 
+    list->html_out = fopen("out_dump.html", "w");
+    if (list->html_out == NULL) return ERROR;
+
     VERIFY;
 
     return SUCCSES;
@@ -130,9 +136,11 @@ error_t list_creator(list_s* list, size_t capacity)
 //!функция вставки в начало
 error_t insert_begin(list_s* list, list_t val)
 {   
+    VERIFY;
+
     if ( list->size == list->capacity )
     {
-        list_realloc(list);
+        if (list_realloc(list)) return ERROR;
     }
 
     size_t index = list->free_i;
@@ -148,6 +156,8 @@ error_t insert_begin(list_s* list, list_t val)
 
     list->size++;
 
+    VERIFY;
+
     return SUCCSES;
 }
 
@@ -158,7 +168,7 @@ error_t insert_end(list_s* list, list_t val)
     
     if ( list->size == list->capacity )
     {
-        list_realloc(list);
+        if (list_realloc(list)) return ERROR;
     }
 
     size_t index = list->free_i;
@@ -187,7 +197,7 @@ error_t insert_after(list_s* list, list_t val, size_t after)
 
     if ( list->size == list->capacity )
     {
-        list_realloc(list);
+        if (list_realloc(list)) return ERROR;
     }
 
     after++;
@@ -224,7 +234,7 @@ error_t insert_before(list_s* list, list_t val, size_t before)
 
     if ( list->size == list->capacity )
     {
-        list_realloc(list);
+        if (list_realloc(list)) return ERROR;
     }
 
     before++;
@@ -380,13 +390,14 @@ error_t delete_before(list_s* list, size_t before)
 error_t list_realloc(list_s* list)
 {
     list->data = (list_t*) realloc ( list->data, sizeof(list_t) * (list->capacity + 1) * 2);
-    PTR_MEM_CHECK(list->data)
+    PTR_RLC_CHECK(list->data)
 
     list->next = (size_t*) realloc ( list->next, sizeof(size_t) * (list->capacity + 1) * 2);
-    PTR_MEM_CHECK(list->next)
+    PTR_RLC_CHECK(list->next)
 
+    //realloc check update!!
     list->prev = (size_t*) realloc ( list->prev, sizeof(size_t) * (list->capacity + 1) * 2);
-    PTR_MEM_CHECK(list->prev)
+    PTR_RLC_CHECK(list->prev)
 
     for (size_t i = list->capacity + 1 ; i < (list->capacity + 1) * 2; i++ )
     {
@@ -426,6 +437,8 @@ error_t list_deleter(list_s* list)
     list->capacity = 0;
     list->size = 0;
     list->free_i = 0;
+
+    fclose(list->html_out);
 
     printf("list was deleted\n");
 

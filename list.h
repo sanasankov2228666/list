@@ -21,6 +21,7 @@ struct list
    size_t free_i = 0; 
 
    size_t error  = 00000000;
+   FILE* html_out = NULL;
 };
 
 typedef struct list list_s;
@@ -43,14 +44,20 @@ enum
 };
 
 //макрос проверки указателя 
-#define PTR_MEM_CHECK(ptr)\
+#define PTR_CLC_CHECK(ptr)\
          if (ptr == NULL) \
          {\
-            printf("NULL pointer after mem func\n");\
+            printf("NULL pointer after CALLOC\n");\
             return ERROR;\
          }\
 
-
+#define PTR_RLC_CHECK(ptr)\
+         if (ptr == NULL) \
+         {\
+            printf("NULL pointer after REALLOC\n");\
+            free (ptr);\
+            return ERROR;\
+         }\
 
 //-----------------------------------------------------------ВСЯКОЕ--------------------------------------------------------------
 
