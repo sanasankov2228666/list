@@ -1,0 +1,60 @@
+digraph List {
+	rankdir=LR;
+	nodesep=0.8;
+	ranksep=1;
+	node [shape=record, style=filled];
+	edge [sep=10];
+	fontsize = 24;
+	label="insert_before, index 2, val 5555";
+	labelloc=t;
+
+
+	node0 [label = "index 0|data = 0|next = 6|prev = 5"];
+	node1 [label = "index 1|data = 11|next = 2|prev = 3"];
+	node2 [label = "index 2|data = 22|next = 4|prev = 1"];
+	node3 [label = "index 3|data = 33|next = 1|prev = 6"];
+	node4 [label = "index 4|data = 55|next = 5|prev = 2"];
+	node5 [label = "index 5|data = 4444|next = 0|prev = 4"];
+	node6 [label = "index 6|data = 5555|next = 3|prev = 0"];
+	node7 [label = "index 7|data = 0|next = 0|prev = 222"];
+
+	node3 [fillcolor="lightblue", color="darkblue", style="filled"];
+	node1 [fillcolor="lightblue", color="darkblue", style="filled"];
+	node2 [fillcolor="lightblue", color="darkblue", style="filled"];
+	node4 [fillcolor="lightblue", color="darkblue", style="filled"];
+
+	node0 -> node1 [style=invis, weight=1000];
+	node1 -> node2 [style=invis, weight=1000];
+	node2 -> node3 [style=invis, weight=1000];
+	node3 -> node4 [style=invis, weight=1000];
+	node4 -> node5 [style=invis, weight=1000];
+	node5 -> node6 [style=invis, weight=1000];
+	node6 -> node7 [style=invis, weight=1000];
+
+	node0->node6 [color = blue, constraint=false];
+	node1->node2 [color = blue, constraint=false];
+	node2->node4 [color = blue, constraint=false];
+	node3->node1 [color = blue, constraint=false];
+	node4->node5 [color = blue, constraint=false];
+	node5->node0 [color = blue, constraint=false];
+	node6->node3 [color = blue, constraint=false];
+
+	node0->node5 [color = red, constraint=false];
+	node1->node3 [color = red, constraint=false];
+	node2->node1 [color = red, constraint=false];
+	node3->node6 [color = red, constraint=false];
+	node4->node2 [color = red, constraint=false];
+	node5->node4 [color = red, constraint=false];
+
+
+	HEAD [shape=plaintext, fillcolor="royalblue", color="darkblue", style="filled"];
+	TAIL [shape=plaintext, fillcolor="tomato", color="darkred", style="filled"];
+	FREE [shape=plaintext, fillcolor="lawngreen", color="darkgreen", style="filled"];
+	ZERO [shape=plaintext, fillcolor="coral", color="darkred", style="filled"];
+	{rank = same ; HEAD; node6 [fillcolor="royalblue", color="darkblue", style="filled"]};
+	{rank = same ; TAIL; node5 [fillcolor="tomato", color="darkred", style="filled"]};
+	{rank = same ; FREE; node7 [fillcolor="lawngreen", color="darkgreen", style="filled"]};
+	{rank = same ; ZERO; node0   [fillcolor="coral", color="darkred", style="filled"]};
+
+
+}

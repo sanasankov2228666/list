@@ -13,7 +13,7 @@ int main(void)
     list_s list = {};
     
     list_creator(&list, 3);
-    list_dump(list, "list creator" );
+    list_dump(list, "list creator");
 
     insert_begin(&list, 11);
     list_dump(list, "insert_begin, val 11" );
@@ -76,6 +76,42 @@ int main(void)
 
     insert_before(&list, 999, 1);
     list_dump(list, "insert_before, index 1, val 999" );
+
+    // delete_end(&list);
+    // list_dump(list, "delete_end" );
+
+    // delete_end(&list);
+    // list_dump(list, "delete_end" );
+
+    // delete_end(&list);
+    // list_dump(list, "delete_end" );
+
+    // delete_end(&list);
+    // list_dump(list, "delete_end" );
+
+    // delete_end(&list);
+    // list_dump(list, "delete_end" );
+
+    // delete_begin(&list);
+    // list_dump(list, "delete_begin" );
+
+    // delete_begin(&list);
+    // list_dump(list, "delete_begin" );
+
+    // delete_begin(&list);
+    // list_dump(list, "delete_begin" );
+
+    // delete_begin(&list);
+    // list_dump(list, "delete_begin" );
+
+    // delete_begin(&list);
+    // list_dump(list, "delete_begin" );
+
+    // sort_list(&list);
+    // list_dump(list, "sort list" );
+
+    compact_list(&list);
+    list_dump(list, "compact list" );
 
     list_deleter(&list);
 
@@ -274,6 +310,7 @@ error_t delete_begin(list_s* list)
 
     size_t old_head = get_head(list);
     list->next[0] = list->next[get_head(list)];
+    list->prev[get_head(list)] = 0;
 
     list->prev[old_head] = PZN;
     list->free_i = old_head;
@@ -395,7 +432,6 @@ error_t list_realloc(list_s* list)
     list->next = (size_t*) realloc ( list->next, sizeof(size_t) * (list->capacity + 1) * 2);
     PTR_RLC_CHECK(list->next)
 
-    //realloc check update!!
     list->prev = (size_t*) realloc ( list->prev, sizeof(size_t) * (list->capacity + 1) * 2);
     PTR_RLC_CHECK(list->prev)
 
@@ -413,6 +449,109 @@ error_t list_realloc(list_s* list)
     list->next[list->capacity + 1] = 0;
 
     return SUCCSES;
+}
+
+error_t compact_list(list_s* list)
+{
+    VERIFY;
+    
+    if (list->capacity < 10 || list->capacity / list->size < 4)
+        return SUCCSES;
+    
+    sort_list(list);
+
+    list->capacity = list->capacity / 2;
+
+    list->data = (list_t*) realloc ( list->data, sizeof(list_t) * (list->capacity + 2));
+    PTR_RLC_CHECK(list->data)
+
+    list->next = (size_t*) realloc ( list->next, sizeof(size_t) * (list->capacity + 2));
+    PTR_RLC_CHECK(list->next)
+
+    list->prev = (size_t*) realloc ( list->prev, sizeof(size_t) * (list->capacity + 2));
+    PTR_RLC_CHECK(list->prev)
+
+    list->data[list->capacity + 1] = 0;
+    list->next[list->capacity + 1] = 0;
+    list->prev[list->capacity + 1] = 222;
+
+    VERIFY;
+
+    return SUCCSES;
+}
+
+//!сортировка свободных ячеек
+error_t sort_list(list_s* list)
+{   
+    size_t index = 0;
+    
+    for (size_t i = 1; i < list->capacity + 1; i++)
+    {
+        if (list->prev[i] == PZN)
+        {
+            index = search_last(list);
+            
+            if (index == 0 || list->prev[index] == PZN || index <= i)
+            {
+                break;
+            }
+            
+            list_t old_data = list->data[index];
+            size_t old_next = list->next[index];
+            size_t old_prev = list->prev[index];
+
+            list->data[index] = list->data[i];
+            list->next[index] = list->next[i];
+            list->prev[index] = list->prev[i];
+
+            list->data[i] = old_data;
+            list->next[i] = old_next;
+            list->prev[i] = old_prev;
+
+            if (list->prev[i] < list->capacity)
+                list->next[list->prev[i]] = i;
+
+            if (list->next[i] < list->capacity)
+                list->prev[list->next[i]] = i;
+        }
+    }
+
+    list->free_i = search_first_free(list);
+
+    for (size_t i = list->free_i; i < list->capacity + 1; i++)
+    {
+        list->next[i] = i + 1;
+        list->prev[i] = PZN;
+    }
+    
+    return SUCCSES;
+}
+
+//!поиск последней занятой ячейки
+size_t search_last(list_s* list)
+{
+    size_t cur = 0;
+    for (size_t i = list->capacity - 1; i >= 1; i--)
+    {
+        if (list->prev[i] != PZN)
+        {
+            cur = i;
+            break; 
+        }
+    }
+
+    return cur;
+}
+
+//!поиск первой свободной
+size_t search_first_free(list_s* list)
+{
+    for (size_t i = 1; i < list->capacity; i++)
+    {
+        if (list->prev[i] == PZN) return i;
+    }
+
+    return list->capacity;
 }
 
 //!обращение к head

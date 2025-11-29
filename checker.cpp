@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include "list.h"
 #include "cheack.h"
+#include <stdarg.h>
 
+//va_list vfprintf
 
 //!генератор графов
 error_t generate_dot_dump(list_s* list, const char* filename, const char* reason)
@@ -56,7 +58,9 @@ error_t generate_dot_dump(list_s* list, const char* filename, const char* reason
 
     fprintf(dot_file, "\n");
 
-    for( size_t i = 1; i < list->capacity + 1; i++)
+
+    
+    for( size_t i = 0; i < list->capacity + 1; i++)
     {   
         if (list->next[i] > (list->capacity + 1) && list->prev[i] != PZN)
         {
@@ -66,14 +70,15 @@ error_t generate_dot_dump(list_s* list, const char* filename, const char* reason
 
         else
         {
-            if (list->prev[i] != PZN && list->next[i] != 0)
+            if (list->prev[i] != PZN )
             fprintf(dot_file, "\tnode%zu->node%zu [color = blue, constraint=false];\n", i, list->next[i]);
         }
     }
 
     fprintf(dot_file, "\n");
 
-    for( size_t i = 1; i < list->capacity + 1; i++)
+
+    for( size_t i = 0; i < list->capacity + 1; i++)
     {
         if (list->prev[i] != 0 && list->prev[i] != PZN)
         {   
@@ -85,7 +90,7 @@ error_t generate_dot_dump(list_s* list, const char* filename, const char* reason
 
             else
             {
-                if (list->prev[i] != PZN)
+                //if (list->prev[i] != PZN)
                 fprintf(dot_file, "\tnode%zu->node%zu [color = red, constraint=false];\n", i, list->prev[i]);
             }
         }
@@ -149,14 +154,23 @@ error_t html_generator(const char* filename, list_s* list)
 }
 
 //!распечатка списка
-void list_dump(list_s list, const char* reason)
+void list_dump(list_s list, const char* reason, ...)
 {   
     fprintf(list.html_out, "<pre>\n");
     fprintf(list.html_out, "<font size=\"6\">\n");
 
     fprintf(list.html_out, "\n-------------------------------------------list-dump------------------------------------------------\n\n");
 
-    fprintf(list.html_out, "Reason - %s\n", reason);
+    //fprintf(list.html_out, "Reason - %s\n", reason);
+
+    static char buffer[500] = {};
+
+    va_list args;
+    va_start(args, reason);
+    vfprintf(list.html_out, reason, args);
+    va_end(args);
+
+    fprintf(list.html_out, "Reason - %s\n", buffer);
 
     fprintf(list.html_out, "head = %zu\n", get_head(&list));
     fprintf(list.html_out, "tail = %zu\n", get_tail(&list));

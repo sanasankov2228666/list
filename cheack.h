@@ -5,7 +5,7 @@
 
 #define INF 1000000000
 
-enum
+enum 
 {   
     CORRECT       = 0,
     BAD_POINTER   = 1,
@@ -24,7 +24,7 @@ error_t generate_dot_dump(list_s* list, const char* filename, const char* reason
 
 error_t html_generator(const char* filename, list_s* list);
 
-void list_dump(list_s list, const char* reason);
+void list_dump(list_s list, const char* reason, ...);
 
 void mass_output(list_s list, size_t* arr);
 

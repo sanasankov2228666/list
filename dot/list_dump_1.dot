@@ -1,0 +1,42 @@
+digraph List {
+	rankdir=LR;
+	nodesep=0.8;
+	ranksep=1;
+	node [shape=record, style=filled];
+	edge [sep=10];
+	fontsize = 24;
+	label="insert_begin, val 11";
+	labelloc=t;
+
+
+	node0 [label = "index 0|data = 0|next = 1|prev = 1"];
+	node1 [label = "index 1|data = 11|next = 0|prev = 0"];
+	node2 [label = "index 2|data = 3|next = 3|prev = 222"];
+	node3 [label = "index 3|data = 4|next = 4|prev = 222"];
+	node4 [label = "index 4|data = 0|next = 0|prev = 222"];
+
+
+	node0 -> node1 [style=invis, weight=1000];
+	node1 -> node2 [style=invis, weight=1000];
+	node2 -> node3 [style=invis, weight=1000];
+	node3 -> node4 [style=invis, weight=1000];
+
+	node0->node1 [color = blue, constraint=false];
+	node1->node0 [color = blue, constraint=false];
+
+	node0->node1 [color = red, constraint=false];
+
+	node2->node3 [color = green, constraint=false];
+	node3->node4 [color = green, constraint=false];
+
+	HEAD [shape=plaintext, fillcolor="royalblue", color="darkblue", style="filled"];
+	TAIL [shape=plaintext, fillcolor="tomato", color="darkred", style="filled"];
+	FREE [shape=plaintext, fillcolor="lawngreen", color="darkgreen", style="filled"];
+	ZERO [shape=plaintext, fillcolor="coral", color="darkred", style="filled"];
+	{rank = same ; HEAD; node1 [fillcolor="royalblue", color="darkblue", style="filled"]};
+	{rank = same ; TAIL; node1 [fillcolor="tomato", color="darkred", style="filled"]};
+	{rank = same ; FREE; node2 [fillcolor="lawngreen", color="darkgreen", style="filled"]};
+	{rank = same ; ZERO; node0   [fillcolor="coral", color="darkred", style="filled"]};
+
+
+}

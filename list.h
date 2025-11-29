@@ -89,4 +89,12 @@ error_t delete_before(list_s* list, size_t before);
 
 error_t list_realloc(list_s* list);
 
+error_t sort_list(list_s* list);
+
+size_t search_last(list_s* list);
+
+size_t search_first_free(list_s* list);
+
+error_t compact_list(list_s* list);
+
 #endif
